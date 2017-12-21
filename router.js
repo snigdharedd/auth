@@ -5,6 +5,7 @@ var bcrypt=require('bcryptjs');
 var passport=require('passport');
 var FacebookStrategy = require('passport-facebook').Strategy;
 var configAuth=require('./models/auth')
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 require('./models/passport');
 var config=require('./config')
 var verifytoken=require('./models/token');
@@ -69,6 +70,10 @@ router.post('/login',function(req,res){
 
 router.get('/auth/facebook',passport.authenticate('facebook',{scope:'email'}))
 router.get('/auth/facebook/callback',passport.authenticate('facebook',{successRedirect : '/profile',
+failureRedirect : '/index'}))
+
+router.get('/auth/google',passport.authenticate('google',{scope:'email'}))
+router.get('/auth/google/callback',passport.authenticate('google',{successRedirect : '/profile',
 failureRedirect : '/index'}))
 
 router.post('/signup',function(req,res){

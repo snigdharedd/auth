@@ -28,6 +28,12 @@ var userSchema=new Schema({
         email:String,
         name:String
 
+    },
+    google:{
+      id: String,
+      token: String,
+      name: String,
+      email: String
     }
 
 })

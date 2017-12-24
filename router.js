@@ -41,32 +41,32 @@ router.get('/getusers',verifytoken,function(req,res){
 
 
 
-router.post('/login',function(req,res){
-    var phone=req.body.phone;
-    var email=req.body.email;
-    var password=req.body.password;
-    User.findOne({$or:[{'phone':phone},{'email':email}]},function(err,user){
-        if(err){
-            res.send(err)
-        }
+    router.post('/login',function(req,res){
+      var email = req.body.email;
+      var password = req.body.password;
+      var phone= req.body.phoneno;
 
+        User.findOne({$or: [
+        {'email':email},
+        {'phoneno':phoneno}
+      ]},function(err,user){
         if(!user){
-            res.json({sucess:false,msg:"email or phoneno is wrong"})
+          res.json('email or phoneno is wrong')
+        }
+        else if(user){
+          bcrypt.compare(password,user.password,function(err,result){
+            if(!result){
+              res.json('wrong password')
+            }else{
+              const token = JWT.sign( {id:user._id},config.secret);
+              return res.send({user:true,token:token})
+            }
+
+          })
         }
 
-
-            var passwordIsValid = bcrypt.compareSync( req.body.password,user.password)
-           var token=jwt.sign({id:user._id},'secret')
-           if(!passwordIsValid){
-               res.status(401).send({sucess:false,token:null})
-           }
-        res.status(200).send({auth:true,token:token})
-    })
-})
-
-
-
-
+      })
+     })
 
 router.get('/auth/facebook',passport.authenticate('facebook',{scope:'email'}))
 router.get('/auth/facebook/callback',passport.authenticate('facebook',{successRedirect : '/profile',
@@ -76,47 +76,53 @@ router.get('/auth/google',passport.authenticate('google',{scope:'email'}))
 router.get('/auth/google/callback',passport.authenticate('google',{successRedirect : '/profile',
 failureRedirect : '/index'}))
 
-router.post('/signup',function(req,res){
-    var hashedPassword = bcrypt.hashSync(req.body.password)
-    var id=req.body.id;
-    var phone=req.body.phone;
-    var email=req.body.email;
-    var password=hashedPassword;
-    var role=req.body.role;
-    var firstname=req.body.firstname;
-     var lastname=req.body.lastname;
-    var countryCode=req.body.countryCode;
 
-    var newUser=new User();
-    newUser.id=id;
-    newUser.phone=phone;
-    newUser.email=email;
-    newUser.password=hashedPassword;
-    newUser.role=role;
-    newUser.firstname=firstname;
-    newUser.lastname=lastname;
+router.post('/register',function(req,res){
+  const ID = req.body.ID;
+  const type= req.body.type;
+  const email= req.body.email;
+  const phone= req.body.phone;
+  const role= req.body.role;
+  const firstname= req.body.firstname;
+  const lastname= req.body.lastname;
+  const password= req.body.password;
 
-
-    User.findOne({$or:[{'phone':phone},{'email':email}]},function(err,user){
+  let newuser = new User();
+  newuser.ID = ID;
+  newuser.type= type;
+  newuser.attributes.email= email;
+  newuser.attributes.phone= phone;
+  newuser.attributes.role= role;
+  newuser.attributes.firstname= firstname;
+  newuser.attributes.lastname= lastname;
+  newuser.attributes.password= password;
+  User.findOne({$or: [
+    {'attributes.email':email},
+    {'attributes.phone': phone}
+]},function(err,user){
+    if(err){
+      console.log('error')
+    }
+    if(user){
+      res.json('email or phoneno is already taken');
+    }
+    bcrypt.genSalt(10,function(err,salt){
+      bcrypt.hash(newuser.attributes.password,salt,function(err,hash){
         if(err){
-        res.send(err)
+          console.log('err');
         }
-        if(user){
-            res.json({msg:'email / phone already taken'})
-        }
-else{
+        newuser.attributes.password=hash;
 
-            newUser.save(function(err,savedfile){
-                if(err){
-                    res.status(404).send()
-                }
-                else{
-                    res.status(201).send(savedfile)
-                }
-            })
-        }
+        newuser.save(function(err){
+          if(err){
+            console.log('err')
+          }else{
+            res.send(user);
+          }
     })
-
+  })
+})
+})
 })
 
   module.exports=router;

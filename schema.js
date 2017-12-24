@@ -4,15 +4,17 @@ var userSchema=new Schema({
    id:{
         type:Number
     },
+    type:{
+      type: String
+    },
+    attributes:{
     phone:{
         type:Number,
   },
     email:{
         type:String,
       },
-    password:{
-        type:String,
-      },
+
     role:{
     type:String
     },
@@ -22,6 +24,10 @@ var userSchema=new Schema({
     lastname:{
         type:String
     },
+    password:{
+      type:String
+    }
+  },
     facebook:{
         id:String,
         token:String,

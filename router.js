@@ -33,10 +33,17 @@ router.get('/getusers',verifytoken,function(req,res){
            else {
                res.send('updated sucessfully' +user)
            }
-
-
-
-        })
+           })
+    })
+    router.delete('/delete',verifytoken,function(req,res){
+      User.findById(req.userid,function(err,user){
+        if(err) return res.send('error');
+        if(!user){
+          return res.send('nouser found');
+        }else{
+          return res.send('deleted successfully');
+        }
+      })
     })
 
 
@@ -44,29 +51,29 @@ router.get('/getusers',verifytoken,function(req,res){
     router.post('/login',function(req,res){
       var email = req.body.email;
       var password = req.body.password;
-      var phone= req.body.phoneno;
 
-        User.findOne({$or: [
-        {'email':email},
-        {'phoneno':phoneno}
-      ]},function(err,user){
+
+        User.find(
+        {'email':email}
+      ,function(err,user){
         if(!user){
           res.json('email or phoneno is wrong')
         }
         else if(user){
-          bcrypt.compare(password,user.password,function(err,result){
-            if(!result){
-              res.json('wrong password')
-            }else{
-              const token = JWT.sign( {id:user._id},config.secret);
+          bcrypt.compare(password,user.password,function(err,reslt){
+          if(!reslt){
+            return res.send('error')
+          }else{
+              const token = jwt.sign( {id:user._id},config.secret);
               return res.send({user:true,token:token})
             }
-
           })
-        }
+
+          }
+        })
 
       })
-     })
+     
 
 router.get('/auth/facebook',passport.authenticate('facebook',{scope:'email'}))
 router.get('/auth/facebook/callback',passport.authenticate('facebook',{successRedirect : '/profile',
